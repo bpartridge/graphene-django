@@ -9,9 +9,8 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import View
-from graphql import OperationType, get_operation_ast, parse, validate
+from graphql import OperationType, get_operation_ast, parse
 from graphql.error import GraphQLError
-from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 
 from graphene import Schema
@@ -27,7 +26,7 @@ class HttpError(Exception):
     def __init__(self, response, message=None, *args, **kwargs):
         self.response = response
         self.message = message = message or response.content.decode()
-        super(HttpError, self).__init__(message, *args, **kwargs)
+        super().__init__(message, *args, **kwargs)
 
 
 def get_accepted_content_types(request):
@@ -67,15 +66,18 @@ class GraphQLView(View):
     react_dom_sri = "sha256-nbMykgB6tsOFJ7OdVmPpdqMFVk4ZsqWocT6issAPUF0="
 
     # The GraphiQL React app.
-    graphiql_version = "1.4.1"  # "1.0.3"
-    graphiql_sri = "sha256-JUMkXBQWZMfJ7fGEsTXalxVA10lzKOS9loXdLjwZKi4="  # "sha256-VR4buIDY9ZXSyCNFHFNik6uSe0MhigCzgN4u7moCOTk="
-    graphiql_css_sri = "sha256-Md3vdR7PDzWyo/aGfsFVF4tvS5/eAUWuIsg9QHUusCY="  # "sha256-LwqxjyZgqXDYbpxQJ5zLQeNcf7WVNSJ+r8yp2rnWE/E="
+    graphiql_version = "2.4.1"  # "1.0.3"
+    graphiql_sri = "sha256-s+f7CFAPSUIygFnRC2nfoiEKd3liCUy+snSdYFAoLUc="  # "sha256-VR4buIDY9ZXSyCNFHFNik6uSe0MhigCzgN4u7moCOTk="
+    graphiql_css_sri = "sha256-88yn8FJMyGboGs4Bj+Pbb3kWOWXo7jmb+XCRHE+282k="  # "sha256-LwqxjyZgqXDYbpxQJ5zLQeNcf7WVNSJ+r8yp2rnWE/E="
 
     # The websocket transport library for subscriptions.
-    subscriptions_transport_ws_version = "0.9.18"
+    subscriptions_transport_ws_version = "5.12.1"
     subscriptions_transport_ws_sri = (
-        "sha256-i0hAXd4PdJ/cHX3/8tIy/Q/qKiWr5WSTxMFuL9tACkw="
+        "sha256-EZhvg6ANJrBsgLvLAa0uuHNLepLJVCFYS+xlb5U/bqw="
     )
+
+    graphiql_plugin_explorer_version = "0.1.15"
+    graphiql_plugin_explorer_sri = "sha256-3hUuhBXdXlfCj6RTeEkJFtEh/kUG+TCDASFpFPLrzvE="
 
     schema = None
     graphiql = False
@@ -103,17 +105,19 @@ class GraphQLView(View):
         if middleware is None:
             middleware = graphene_settings.MIDDLEWARE
 
-        self.schema = self.schema or schema
+        self.schema = schema or self.schema
         if middleware is not None:
             if isinstance(middleware, MiddlewareManager):
                 self.middleware = middleware
             else:
                 self.middleware = list(instantiate_middleware(middleware))
         self.root_value = root_value
-        self.pretty = self.pretty or pretty
-        self.graphiql = self.graphiql or graphiql
-        self.batch = self.batch or batch
-        self.execution_context_class = execution_context_class
+        self.pretty = pretty or self.pretty
+        self.graphiql = graphiql or self.graphiql
+        self.batch = batch or self.batch
+        self.execution_context_class = (
+            execution_context_class or self.execution_context_class
+        )
         if subscription_path is None:
             self.subscription_path = graphene_settings.SUBSCRIPTION_PATH
 
@@ -159,10 +163,13 @@ class GraphQLView(View):
                     graphiql_css_sri=self.graphiql_css_sri,
                     subscriptions_transport_ws_version=self.subscriptions_transport_ws_version,
                     subscriptions_transport_ws_sri=self.subscriptions_transport_ws_sri,
+                    graphiql_plugin_explorer_version=self.graphiql_plugin_explorer_version,
+                    graphiql_plugin_explorer_sri=self.graphiql_plugin_explorer_sri,
                     # The SUBSCRIPTION_PATH setting.
                     subscription_path=self.subscription_path,
                     # GraphiQL headers tab,
                     graphiql_header_editor_enabled=graphene_settings.GRAPHIQL_HEADER_EDITOR_ENABLED,
+                    graphiql_should_persist_headers=graphene_settings.GRAPHIQL_SHOULD_PERSIST_HEADERS,
                 )
 
             if self.batch:
@@ -303,11 +310,6 @@ class GraphQLView(View):
                         ),
                     )
                 )
-
-        validation_errors = validate(self.schema.graphql_schema, document)
-        if validation_errors:
-            return ExecutionResult(data=None, errors=validation_errors)
-
         try:
             extra_options = {}
             if self.execution_context_class:
@@ -387,7 +389,7 @@ class GraphQLView(View):
     @staticmethod
     def format_error(error):
         if isinstance(error, GraphQLError):
-            return format_graphql_error(error)
+            return error.formatted
 
         return {"message": str(error)}
 
