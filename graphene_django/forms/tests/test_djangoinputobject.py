@@ -1,11 +1,11 @@
-import graphene
-
 from django import forms
 from pytest import raises
 
+import graphene
 from graphene_django import DjangoObjectType
+
+from ...tests.models import CHOICES, Film, Reporter
 from ..types import DjangoFormInputObjectType
-from ...tests.models import Reporter, Film, CHOICES
 
 # Reporter a_choice CHOICES = ((1, "this"), (2, _("that")))
 THIS = CHOICES[0][0]
@@ -31,7 +31,7 @@ class ReporterType(DjangoObjectType):
 class ReporterForm(forms.ModelForm):
     class Meta:
         model = Reporter
-        exclude = ("pets", "email")
+        exclude = ("pets", "email", "fans")
 
 
 class MyForm(forms.Form):

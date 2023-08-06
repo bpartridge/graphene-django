@@ -12,10 +12,9 @@ from django.views.generic import View
 from graphql import OperationType, get_operation_ast, parse
 from graphql.error import GraphQLError
 from graphql.execution import ExecutionResult
-
-from graphene import Schema
 from graphql.execution.middleware import MiddlewareManager
 
+from graphene import Schema
 from graphene_django.constants import MUTATION_ERRORS_FLAG
 from graphene_django.utils.utils import set_rollback
 
@@ -40,9 +39,9 @@ def get_accepted_content_types(request):
 
     raw_content_types = request.META.get("HTTP_ACCEPT", "*/*").split(",")
     qualified_content_types = map(qualify, raw_content_types)
-    return list(
+    return [
         x[0] for x in sorted(qualified_content_types, key=lambda x: x[1], reverse=True)
-    )
+    ]
 
 
 def instantiate_middleware(middlewares):
@@ -66,18 +65,21 @@ class GraphQLView(View):
     react_dom_sri = "sha256-nbMykgB6tsOFJ7OdVmPpdqMFVk4ZsqWocT6issAPUF0="
 
     # The GraphiQL React app.
-    graphiql_version = "2.4.1"  # "1.0.3"
-    graphiql_sri = "sha256-s+f7CFAPSUIygFnRC2nfoiEKd3liCUy+snSdYFAoLUc="  # "sha256-VR4buIDY9ZXSyCNFHFNik6uSe0MhigCzgN4u7moCOTk="
-    graphiql_css_sri = "sha256-88yn8FJMyGboGs4Bj+Pbb3kWOWXo7jmb+XCRHE+282k="  # "sha256-LwqxjyZgqXDYbpxQJ5zLQeNcf7WVNSJ+r8yp2rnWE/E="
+    graphiql_version = "2.4.7"
+    graphiql_sri = "sha256-n/LKaELupC1H/PU6joz+ybeRJHT2xCdekEt6OYMOOZU="
+    graphiql_css_sri = "sha256-OsbM+LQHcnFHi0iH7AUKueZvDcEBoy/z4hJ7jx1cpsM="
 
     # The websocket transport library for subscriptions.
-    subscriptions_transport_ws_version = "5.12.1"
+    subscriptions_transport_ws_version = "5.13.1"
     subscriptions_transport_ws_sri = (
         "sha256-EZhvg6ANJrBsgLvLAa0uuHNLepLJVCFYS+xlb5U/bqw="
     )
 
     graphiql_plugin_explorer_version = "0.1.15"
     graphiql_plugin_explorer_sri = "sha256-3hUuhBXdXlfCj6RTeEkJFtEh/kUG+TCDASFpFPLrzvE="
+    graphiql_plugin_explorer_css_sri = (
+        "sha256-fA0LPUlukMNR6L4SPSeFqDTYav8QdWjQ2nr559Zln1U="
+    )
 
     schema = None
     graphiql = False

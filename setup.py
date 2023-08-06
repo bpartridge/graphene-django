@@ -26,10 +26,7 @@ tests_require = [
 
 
 dev_requires = [
-    "black==23.3.0",
-    "flake8==6.0.0",
-    "flake8-black==0.3.6",
-    "flake8-bugbear==23.3.23",
+    "ruff",
     "pre-commit",
 ] + tests_require
 
@@ -38,6 +35,7 @@ setup(
     version=version,
     description="Graphene Django integration",
     long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     url="https://github.com/graphql-python/graphene-django",
     author="Syrus Akbary",
     author_email="me@syrusakbary.com",
@@ -47,7 +45,6 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -55,8 +52,8 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
         "Framework :: Django",
         "Framework :: Django :: 3.2",
-        "Framework :: Django :: 4.0",
         "Framework :: Django :: 4.1",
+        "Framework :: Django :: 4.2",
     ],
     keywords="api graphql protocol rest relay graphene",
     packages=find_packages(exclude=["tests", "examples", "examples.*"]),
